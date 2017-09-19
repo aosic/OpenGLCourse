@@ -9,6 +9,12 @@
 #import "OpenGLESView.h"
 #import <OpenGLES/ES2/gl.h>
 #import "GLUtil.h"
+
+typedef struct {
+    GLfloat x,y,z;
+    GLfloat r,g,b;
+} Vertex;
+
 @interface OpenGLESView (){
     EAGLContext           *_context;
     CAEAGLLayer           *_eaglLayer;
@@ -18,7 +24,7 @@
     
     //着色器程序
     GLuint                 _program;
-    
+    int                    _vertCount;
 }
 
 @end
@@ -120,47 +126,56 @@
     //清屏
     glClearColor(1.0, 1.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
-    
+    glLineWidth(2.0);
     //设置视口大小
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
     
     //绘制图形
     [self szh_setupVertexData];
     
-   
-    
     //将指定 renderbuffer 呈现在屏幕上，在这里我们指定的是前面已经绑定为当前 renderbuffer 的那个，在 renderbuffer 可以被呈现之前，必须调用renderbufferStorage:fromDrawable: 为之分配存储空间。
     [_context presentRenderbuffer:GL_RENDERBUFFER];
     
+    
+   
 }
 
 #pragma mark -------- 设置顶点数据
 
 - (void)szh_setupVertexData {
     
-    static GLfloat vertices[] = {
-        0.0f,  0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f
-    };
     
-    GLuint posSlot = glGetAttribLocation(_program, "position");
-    glVertexAttribPointer(posSlot, 3, GL_FLOAT, GL_FALSE, 0, vertices);
-    glEnableVertexAttribArray(posSlot);
+    _vertCount = 100; // 分割份数
+    Vertex *vertext = (Vertex *)malloc(sizeof(Vertex) * _vertCount);
+    memset(vertext, 0x00, sizeof(Vertex) * _vertCount);
     
     
-    static GLfloat colors[] = {
-        0.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 0.0f
-    };
-    GLuint colorSot = glGetAttribLocation(_program, "color");
-    glVertexAttribPointer(colorSot, 3, GL_FLOAT, GL_FALSE, 0, colors);
-    glEnableVertexAttribArray(colorSot);
+    float a = 0.8; // 水平方向的半径
+    float b = a * self.frame.size.width / self.frame.size.height;
+    
+    float delta = 2.0*M_PI/_vertCount;
+    for (int i = 0; i < _vertCount; i++) {
+        GLfloat x = a * cos(delta * i);
+        GLfloat y = b * sin(delta * i);
+        GLfloat z = 0.0;
+        vertext[i] = (Vertex){x, y, z, x, y, x+y};
+        
+        printf("%f , %f\n", x, y);
+    }
+    
+    glEnableVertexAttribArray(glGetAttribLocation(_program, "position"));
+    glVertexAttribPointer(glGetAttribLocation(_program, "position"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), vertext);
+    
+    glEnableVertexAttribArray(glGetAttribLocation(_program, "color"));
+    glVertexAttribPointer(glGetAttribLocation(_program, "color"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), vertext+sizeof(GLfloat)*3);
+    
+    
     
     //绘制三角形
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, _vertCount);
     
+    free(vertext);
+    vertext = NULL;
 }
 
 
