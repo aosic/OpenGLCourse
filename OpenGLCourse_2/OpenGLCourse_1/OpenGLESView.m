@@ -171,9 +171,14 @@ typedef struct {
     
     
     
-    //绘制三角形
-    glDrawArrays(GL_TRIANGLE_FAN, 0, _vertCount);
-    
+    //绘制圆形
+//    glDrawArrays(GL_TRIANGLE_FAN, 0, _vertCount);
+//    glDrawArrays(GL_LINE_LOOP, 0, _vertCount);
+//    glDrawArrays(GL_LINES, 0, _vertCount);
+//    glDrawArrays(GL_LINE_STRIP, 0, _vertCount);
+//    glDrawArrays(GL_POINTS, 0, _vertCount);
+//    glDrawArrays(GL_TRIANGLES, 0, _vertCount);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertCount);
     free(vertext);
     vertext = NULL;
 }
